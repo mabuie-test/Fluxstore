@@ -1,0 +1,18 @@
+import { storefrontExperiences, subscribeToNewsletter, sendDigest } from '../services/marketingService.js';
+import { assertAuthenticated } from '../utils/authMiddleware.js';
+
+export const getStorefront = (_req, res) => {
+  res.json(storefrontExperiences());
+};
+
+export const subscribe = async (req, res) => {
+  const { email, name, categories, frequency, locale } = req.body;
+  const subscriber = await subscribeToNewsletter({ email, name, categories, frequency, locale });
+  res.status(201).json(subscriber);
+};
+
+export const broadcastDigest = [assertAuthenticated, async (req, res) => {
+  const { subject, highlightProducts = [], announcements = [] } = req.body;
+  const result = await sendDigest({ subject, highlightProducts, announcements });
+  res.json(result);
+}];
