@@ -49,3 +49,23 @@ Substitua os placeholders (`buyer-msisdn`, `seller-msisdn`, URLs e tokens sociai
 ### Deploy
 - Para uma configuração rápida no Render, siga o guia detalhado em `redme.txt`, incluindo variáveis de ambiente, comandos de build/start e recomendações de boas práticas.
 - Um arquivo de exemplo `.env.example` em `backend/` lista todas as variáveis utilizadas pelo backend.
+
+## Frontend (React + Vite)
+- **Stack**: React 18, Vite, React Router, Zustand e Axios. O build gerado em `frontend/dist` é servido automaticamente pelo Express em produção quando a pasta existe.
+- **Tela pública**: landing editorial com hero, lookbook, guia de estilo, newsletter e vitrine curada conectada ao `/api/marketing` e `/api/products`.
+- **Checkout completo**: carrinho persistido, fidelidade, estimativa de entrega e checkout Mpesa via `/api/cart` e `/api/orders`.
+- **Conta**: registro/login, login social (placeholders Google/Facebook), verificação por email, recuperação de senha, preferências regionais, newsletter e wishlist/notificações sincronizadas.
+- **Admin console**: dashboards em tempo real, menu dinâmico por role, atualização de settings (branding, taxas), fila de denúncias e broadcast de notificações.
+
+### Como executar o frontend
+1. Instale dependências na pasta `frontend/`:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+2. Para build de produção (consumido pelo Express):
+   ```bash
+   npm run build
+   cd ../backend && npm run dev
+   ```

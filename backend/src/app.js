@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDb } from './utils/db.js';
 import { env } from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
@@ -37,6 +40,17 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit', auditRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const clientDir = path.resolve(__dirname, '../../frontend/dist');
+
+if (fs.existsSync(clientDir)) {
+  app.use(express.static(clientDir));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    return res.sendFile(path.join(clientDir, 'index.html'));
+  });
+}
 
 connectDb().then(() => {
   app.listen(env.port, () => console.log(`Fluxstore backend running on ${env.port}`));
