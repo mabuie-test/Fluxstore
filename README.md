@@ -15,6 +15,7 @@ Este repositório contém uma espinha dorsal para a Fluxstore com foco em pagame
 - **Newsletter & anúncios**: `/api/marketing/newsletter` para opt-in e `/api/marketing/newsletter/broadcast` para disparar campanhas periódicas com anúncios de novidades e ofertas.
 - **Admin UX sem código**: `/api/admin/menu` entrega menus completos para compradores, vendedores e admins; `/api/admin/settings` permite editar cores, blocos da home, taxas, presets de layout/estilo e feature flags sem alterar código; `/api/admin/dashboard` resume GMV, risco e base de usuários.
 - **Denúncias/moderação**: `/api/reports` abre denúncias de produtos/pedidos/usuários; admins podem listar e resolver.
+- **Notificações e auditoria**: `/api/notifications` lista, marca como lidas e permite broadcast segmentado; `/api/audit` oferece trilha de auditoria para admins consultarem ações críticas (pagamentos, disputas, denúncias).
 
 ### Como executar
 1. Configure variáveis de ambiente em `.env` (MongoDB, credenciais Mpesa e SMTP). Valores de sandbox estão definidos como padrão em `backend/src/config/env.js`.
@@ -40,5 +41,7 @@ Este repositório contém uma espinha dorsal para a Fluxstore com foco em pagame
     - `GET /api/admin/menu` | `GET /api/admin/dashboard` | `PATCH /api/admin/users/:id/status`
     - `GET /api/admin/settings` | `PATCH /api/admin/settings`
     - `POST /api/reports` | `GET /api/reports` (admin) | `PATCH /api/reports/:id` (admin)
+    - `GET /api/notifications` | `PATCH /api/notifications/:id/read` | `POST /api/notifications/broadcast` (admin)
+    - `GET /api/audit` (admin)
 
 Substitua os placeholders (`buyer-msisdn`, `seller-msisdn`, URLs e tokens sociais) conforme integrar com provedores reais. A camada de serviços foi escrita para ser facilmente trocada por SDKs oficiais ou chamadas REST completas.

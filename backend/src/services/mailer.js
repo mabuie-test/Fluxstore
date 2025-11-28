@@ -49,6 +49,15 @@ class Mailer {
       text: `${greetings[locale] || greetings.pt} ${name || ''}\n${headline}\n${hero}\n${announcements}`
     });
   }
+
+  async sendNotification({ to, subject, body }) {
+    return this.transporter.sendMail({
+      from: env.mail.user,
+      to,
+      subject: subject || 'Atualização da Fluxstore',
+      text: body
+    });
+  }
 }
 
 export const mailer = new Mailer();

@@ -6,6 +6,8 @@ import { pricingService } from '../services/pricingService.js';
 import { promotionService } from '../services/promotionService.js';
 import { User } from '../models/User.js';
 import { Cart } from '../models/Cart.js';
+import { notificationService } from '../services/notificationService.js';
+import { auditService } from '../services/auditService.js';
 
 export const createOrder = async (req, res) => {
   const { items, address, region, city, promoCode, redeemLoyalty, cartId } = req.body;
@@ -52,6 +54,36 @@ export const createOrder = async (req, res) => {
   if (redeemLoyalty) await User.updateOne({ _id: req.user.id }, { $inc: { loyaltyPoints: -redeemLoyalty } });
   const loyaltyEarned = Math.round(quote.total * 0.02);
   await User.updateOne({ _id: req.user.id }, { $inc: { loyaltyPoints: loyaltyEarned } });
+
+  await notificationService.notify({
+    userId: req.user.id,
+    type: 'order',
+    title: 'Pedido confirmado',
+    message: `Pedido ${order.id} recebido com entrega estimada em ${etaDays} dias.`,
+    actionUrl: `/orders/${order.id}`,
+    meta: { orderId: order.id, etaDays }
+  });
+
+  if (seller) {
+    await notificationService.notify({
+      userId: seller.id,
+      type: 'order',
+      title: 'Novo pedido',
+      message: `Você recebeu um novo pedido #${order.id} para preparar e enviar.`,
+      actionUrl: `/seller/orders/${order.id}`,
+      meta: { orderId: order.id, total: quote.total }
+    });
+  }
+
+  await auditService.log({
+    actor: req.user.id,
+    role: req.user.role,
+    action: 'order_created',
+    targetType: 'order',
+    targetId: order.id,
+    description: 'Pedido criado com Mpesa escrow e split dinâmico',
+    metadata: { total: quote.total, promo: validatedPromo.code, loyaltyEarned }
+  });
 
   res.status(201).json({ order, quote, promo: validatedPromo, loyaltyEarned });
 };

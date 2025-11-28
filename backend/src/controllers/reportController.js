@@ -1,5 +1,7 @@
 import { Report } from '../models/Report.js';
 import { assertAuthenticated, requireRole } from '../utils/authMiddleware.js';
+import { notificationService } from '../services/notificationService.js';
+import { auditService } from '../services/auditService.js';
 
 export const createReport = [assertAuthenticated, async (req, res) => {
   const { targetType, targetId, reason, context, severity, attachments } = req.body;
@@ -11,6 +13,22 @@ export const createReport = [assertAuthenticated, async (req, res) => {
     context,
     severity,
     attachments
+  });
+  await notificationService.broadcastRole('admin', {
+    title: 'Nova denúncia',
+    message: `Nova denúncia ${report.id} sobre ${targetType}.`,
+    type: 'report',
+    actionUrl: `/admin/reports/${report.id}`,
+    meta: { reportId: report.id, targetType }
+  });
+  await auditService.log({
+    actor: req.user.id,
+    role: req.user.role,
+    action: 'report_created',
+    targetType,
+    targetId: targetId?.toString(),
+    description: 'Denúncia registrada',
+    metadata: { severity }
   });
   res.status(201).json(report);
 }];
@@ -32,5 +50,22 @@ export const updateReport = [requireRole('admin'), async (req, res) => {
     { new: true }
   );
   if (!updated) return res.status(404).json({ message: 'Report not found' });
+  await notificationService.notify({
+    userId: updated.reporter,
+    type: 'report',
+    title: 'Denúncia atualizada',
+    message: `Sua denúncia ${updated.id} foi marcada como ${status}.`,
+    actionUrl: `/reports/${updated.id}`,
+    meta: { status }
+  });
+  await auditService.log({
+    actor: req.user.id,
+    role: req.user.role,
+    action: 'report_updated',
+    targetType: updated.targetType,
+    targetId: updated.targetId?.toString(),
+    description: 'Denúncia revisada por admin',
+    metadata: { status }
+  });
   res.json(updated);
 }];

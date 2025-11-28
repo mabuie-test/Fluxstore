@@ -28,7 +28,17 @@ const userSchema = new mongoose.Schema(
       rating: { type: Number, default: 0 },
       totalSales: { type: Number, default: 0 },
       catalogueSize: { type: Number, default: 0 },
-      verificationStage: { type: String, enum: ['draft', 'pending', 'approved'], default: 'draft' }
+      verificationStage: { type: String, enum: ['draft', 'pending', 'approved'], default: 'draft' },
+      riskScore: { type: Number, default: 0 },
+      kyc: {
+        documentId: String,
+        taxNumber: String,
+        businessLicense: String,
+        proofOfAddress: String,
+        status: { type: String, enum: ['draft', 'pending', 'approved', 'rejected'], default: 'draft' },
+        reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        notes: String
+      }
     },
     googleId: String,
     facebookId: String,
