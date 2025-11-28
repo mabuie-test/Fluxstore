@@ -11,6 +11,8 @@ import marketingRoutes from './routes/marketingRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import promotionRoutes from './routes/promotionRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
 
 const app = express();
 app.use(cors());
@@ -25,6 +27,8 @@ app.use('/api/marketing', marketingRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/promotions', promotionRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 

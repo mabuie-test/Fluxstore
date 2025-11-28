@@ -1,8 +1,9 @@
 import { storefrontExperiences, subscribeToNewsletter, sendDigest } from '../services/marketingService.js';
 import { assertAuthenticated } from '../utils/authMiddleware.js';
 
-export const getStorefront = (_req, res) => {
-  res.json(storefrontExperiences());
+export const getStorefront = async (_req, res) => {
+  const experience = await storefrontExperiences();
+  res.json(experience);
 };
 
 export const subscribe = async (req, res) => {
