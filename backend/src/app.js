@@ -13,6 +13,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import promotionRoutes from './routes/promotionRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
+import wishlistRoutes from './routes/wishlistRoutes.js';
 
 const app = express();
 app.use(cors());
@@ -29,6 +30,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 

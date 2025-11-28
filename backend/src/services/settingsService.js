@@ -27,6 +27,135 @@ const defaultSections = [
   }
 ];
 
+const defaultAccentPresets = [
+  {
+    name: 'Solar',
+    primary: '#ff7f50',
+    accent: '#1f6feb',
+    gradient: 'linear-gradient(135deg, #ffedd5, #ffe4e6)',
+    pattern: 'radial-soft',
+    preview: '/assets/presets/solar.png'
+  },
+  {
+    name: 'Aurora',
+    primary: '#22d3ee',
+    accent: '#a855f7',
+    gradient: 'linear-gradient(135deg, #ecfeff, #f3e8ff)',
+    pattern: 'glassmorphic',
+    preview: '/assets/presets/aurora.png'
+  },
+  {
+    name: 'Pine',
+    primary: '#10b981',
+    accent: '#0f172a',
+    gradient: 'linear-gradient(120deg, #ecfdf3, #dbeafe)',
+    pattern: 'angled-shape',
+    preview: '/assets/presets/pine.png'
+  }
+];
+
+const defaultStyleGuide = {
+  typography: {
+    headingFont: 'Space Grotesk',
+    bodyFont: 'Inter',
+    heroScale: 'clamp(32px, 4vw, 56px)',
+    bodyScale: '17px'
+  },
+  shapes: {
+    radius: '18px',
+    buttons: '14px',
+    cards: '22px'
+  },
+  shadows: {
+    card: '0 24px 64px rgba(0,0,0,0.08)',
+    popover: '0 28px 72px rgba(0,0,0,0.16)'
+  },
+  imagery: {
+    heroBackdrop: 'radial-gradient(circle at 20% 20%, #e0f2fe, #fff0f6)',
+    badges: {
+      palette: ['#d946ef', '#0ea5e9', '#22c55e', '#f59e0b'],
+      shape: 'pill'
+    }
+  },
+  layout: {
+    grid: '12-col',
+    spacing: '1.5rem',
+    heroVariant: 'immersive'
+  }
+};
+
+const defaultLookbooks = [
+  {
+    title: 'Tech & Lifestyle',
+    slug: 'tech-lifestyle',
+    palette: defaultAccentPresets[1],
+    hero: {
+      headline: 'Tech desejada com entrega inteligente',
+      subheadline: 'Combos curados por ocasião e região de entrega',
+      media: '/assets/lookbooks/tech-hero.png'
+    },
+    sections: [
+      { type: 'masonry', tag: 'gadgets', items: 6 },
+      { type: 'editorial', tag: 'home-office', badge: 'setup premium' },
+      { type: 'duo-highlight', tags: ['smart-home', 'wearables'] }
+    ]
+  },
+  {
+    title: 'Moda & Casa',
+    slug: 'fashion-home',
+    palette: defaultAccentPresets[0],
+    hero: {
+      headline: 'Cápsulas prontas para cada clima',
+      subheadline: 'Frete otimizado por cidade e devolução fácil',
+      media: '/assets/lookbooks/fashion-hero.png'
+    },
+    sections: [
+      { type: 'color-stacks', tag: 'verão', badge: 'tons solares' },
+      { type: 'story', tag: 'decor', cta: 'Ver kits de sala' },
+      { type: 'carousel', tag: 'novidades', badge: 'drops semanais' }
+    ]
+  }
+];
+
+const defaultMicrocopy = {
+  emptyStates: {
+    cart: 'Seu carrinho está vazio. Explore coleções e receba em poucos dias.',
+    wishlist: 'Salve achados e receba alertas de reposição.',
+    orders: 'Nenhum pedido ainda. Combine kits e ganhe cashback.'
+  },
+  upsells: ['Envio ecológico disponível', 'Proteção extra em Mpesa escrow', 'Cashback para próximos drops']
+};
+
+const defaultLayoutPresets = [
+  {
+    name: 'Hero duplo + Destaques',
+    description: 'Layout com herói dividido e blocos de curadoria',
+    heroVariant: 'split-visual',
+    sections: defaultSections
+  },
+  {
+    name: 'Editorial storytelling',
+    description: 'Home com vitrine editorial, depoimentos e blocos de confiança',
+    heroVariant: 'storyteller',
+    sections: [
+      {
+        title: 'Trending agora',
+        type: 'editorial',
+        badge: 'curadoria',
+        items: [
+          { title: 'Looks cápsula', image: '/assets/editorial-capsule.png', tag: 'mix & match' },
+          { title: 'Gadgets essenciais', image: '/assets/editorial-gadgets.png', tag: 'produtos verificados' }
+        ]
+      },
+      {
+        title: 'Confiança garantida',
+        type: 'trust-blocks',
+        items: ['Escrow Mpesa', 'Resolução de disputa guiada', 'Rastreamento em tempo real']
+      }
+    ]
+  }
+];
+
 const defaultMenus = {
   buyer: [
     { key: 'home', label: 'Início', path: '/home', description: 'Explorar vitrines e destaques', featureFlag: 'storefront', audience: 'buyer' },
@@ -109,8 +238,11 @@ export const ensureSettings = async () => {
         headline: 'Mercado universal com Mpesa',
         subheadline: 'Entrega inteligente, fidelidade, disputas e monetização completa.',
         cta: 'Explorar agora'
-      }
+      },
+      accentPresets: defaultAccentPresets
     },
+    styleGuide: defaultStyleGuide,
+    layoutPresets: defaultLayoutPresets,
     personalization: {
       announcementBar: 'Pague por Mpesa com proteção de disputa e cashback!',
       supportChannels: ['email: suporte@fluxstore.test', 'chat 24/7', 'FAQ dinâmico'],
@@ -121,6 +253,8 @@ export const ensureSettings = async () => {
         'Cashback por compra recorrente e newsletter'
       ],
       homeSections: defaultSections,
+      microcopy: defaultMicrocopy,
+      lookbooks: defaultLookbooks,
       seo: {
         title: 'Fluxstore Marketplace - B2C com Mpesa',
         description: 'Marketplace multi-vendedor com pagamentos Mpesa, prazos dinâmicos e monetização por venda.',
@@ -169,6 +303,7 @@ export const getStorefrontTemplate = async () => {
 
   return {
     theme,
+    styleGuide: settings.styleGuide || defaultStyleGuide,
     sections: settings.personalization?.homeSections?.length
       ? settings.personalization.homeSections
       : defaultSections,
@@ -185,6 +320,14 @@ export const getStorefrontTemplate = async () => {
     announcementBar: settings.personalization?.announcementBar,
     seo: settings.personalization?.seo,
     featureToggles: settings.featureToggles,
-    menus: settings.menus
+    menus: settings.menus,
+    microcopy: settings.personalization?.microcopy || defaultMicrocopy,
+    lookbooks: settings.personalization?.lookbooks?.length
+      ? settings.personalization.lookbooks
+      : defaultLookbooks,
+    layoutPresets: settings.layoutPresets?.length ? settings.layoutPresets : defaultLayoutPresets,
+    accentPresets: settings.branding?.accentPresets?.length
+      ? settings.branding.accentPresets
+      : defaultAccentPresets
   };
 };

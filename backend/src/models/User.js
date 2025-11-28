@@ -34,7 +34,14 @@ const userSchema = new mongoose.Schema(
     facebookId: String,
     resetToken: String,
     resetExpires: Date,
-    adminNotes: String
+    adminNotes: String,
+    preferences: {
+      themeMode: { type: String, enum: ['light', 'dark', 'auto'], default: 'auto' },
+      locale: { type: String, default: 'pt-MZ' },
+      marketingOptIn: { type: Boolean, default: true },
+      stylePreset: { type: String, default: 'solar' },
+      interfaceDensity: { type: String, enum: ['cozy', 'compact', 'comfortable'], default: 'cozy' }
+    }
   },
   { timestamps: true }
 );

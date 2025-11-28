@@ -43,3 +43,19 @@ export const sendDigest = async ({ subject, highlightProducts, announcements }) 
 };
 
 export const storefrontExperiences = async () => getStorefrontTemplate();
+
+export const lookbookExperiences = async ({ slug } = {}) => {
+  const storefront = await getStorefrontTemplate();
+  const lookbooks = storefront.lookbooks || [];
+  const selected = slug
+    ? lookbooks.find((entry) => entry.slug === slug) || lookbooks[0]
+    : lookbooks[0];
+
+  return {
+    active: selected,
+    palette: selected?.palette || storefront.accentPresets?.[0],
+    styleGuide: storefront.styleGuide,
+    accentPresets: storefront.accentPresets,
+    catalog: lookbooks
+  };
+};

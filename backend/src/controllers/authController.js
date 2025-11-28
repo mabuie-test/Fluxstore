@@ -70,3 +70,19 @@ export const verifyEmail = async (req, res) => {
     res.status(400).json({ message: 'Invalid token' });
   }
 };
+
+export const updatePreferences = async (req, res) => {
+  const updates = req.body.preferences || req.body;
+  const user = await User.findById(req.user.id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  const currentPreferences =
+    typeof user.preferences?.toObject === 'function'
+      ? user.preferences.toObject()
+      : user.preferences || {};
+
+  user.preferences = { ...currentPreferences, ...updates };
+  await user.save();
+
+  res.json({ preferences: user.preferences });
+};

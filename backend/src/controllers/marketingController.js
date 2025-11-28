@@ -1,8 +1,18 @@
-import { storefrontExperiences, subscribeToNewsletter, sendDigest } from '../services/marketingService.js';
+import {
+  storefrontExperiences,
+  subscribeToNewsletter,
+  sendDigest,
+  lookbookExperiences
+} from '../services/marketingService.js';
 import { assertAuthenticated } from '../utils/authMiddleware.js';
 
 export const getStorefront = async (_req, res) => {
   const experience = await storefrontExperiences();
+  res.json(experience);
+};
+
+export const getLookbook = async (req, res) => {
+  const experience = await lookbookExperiences({ slug: req.query.slug });
   res.json(experience);
 };
 
