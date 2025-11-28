@@ -47,8 +47,8 @@ Este repositório contém uma espinha dorsal para a Fluxstore com foco em pagame
 Substitua os placeholders (`buyer-msisdn`, `seller-msisdn`, URLs e tokens sociais) conforme integrar com provedores reais. A camada de serviços foi escrita para ser facilmente trocada por SDKs oficiais ou chamadas REST completas.
 
 ### Deploy
-- Para uma configuração rápida no Render, siga o guia detalhado em `redme.txt`, incluindo variáveis de ambiente, comandos de build/start e recomendações de boas práticas.
-- Um arquivo de exemplo `.env.example` em `backend/` lista todas as variáveis utilizadas pelo backend.
+- Para uma configuração rápida no Render, siga o guia detalhado em `redme.txt`, que agora cobre backend (Web Service) e o frontend (Static Site ou servido pelo Express) com comandos de build/start e variáveis necessárias.
+- Um arquivo de exemplo `.env.example` em `backend/` lista todas as variáveis utilizadas pelo backend e `frontend/.env.example` traz as opções de branding e a URL da API para o SPA.
 
 ## Frontend (React + Vite)
 - **Stack**: React 18, Vite, React Router, Zustand e Axios. O build gerado em `frontend/dist` é servido automaticamente pelo Express em produção quando a pasta existe.

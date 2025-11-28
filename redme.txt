@@ -1,20 +1,22 @@
-Guia de deploy no Render (Fluxstore Backend)
-===========================================
+Guia de deploy no Render (Fluxstore Backend + Frontend)
+======================================================
 
-Este documento descreve como publicar o backend Node.js/Express da Fluxstore no Render com MongoDB, Mpesa e SMTP. Siga os passos em ordem para evitar falhas.
+Este documento descreve como publicar **backend** e **frontend** da Fluxstore no Render com MongoDB, Mpesa e SMTP. Use como checklist
+para não esquecer variáveis, build do SPA e paths corretos.
 
 1) Preparação do repositório
 ----------------------------
-- Certifique-se de que o código esteja no GitHub/GitLab (Render lê diretamente do repositório).
-- No repositório, mantenha `backend/package.json` com o script `start` já configurado (`NODE_ENV=production node src/app.js`).
-- Confirme que o branch principal contém o diretório `backend/` e um arquivo `.env` (não faça commit do `.env`).
+- Garanta que o repositório está no GitHub/GitLab. O Render irá puxar o código a partir do branch principal.
+- Mantenha o backend em `backend/` com o script `start` configurado (`NODE_ENV=production node src/app.js`).
+- O frontend Vite fica em `frontend/` e o build estático é gerado em `frontend/dist`.
+- Nunca commite `.env`; use apenas `.env.example` como referência.
 
-2) Variáveis de ambiente necessárias
-------------------------------------
-Crie um Environment Group no Render com estas variáveis (ajuste valores reais):
-- `PORT` – porta exposta pelo serviço (Render define automaticamente; deixe em branco ou repita o valor que Render fornece).
+2) Variáveis de ambiente necessárias (backend)
+----------------------------------------------
+Crie um Environment Group com os valores reais:
+- `PORT` – porta exposta (Render define automaticamente; pode deixar em branco ou repetir o valor padrão).
 - `MONGO_URI` – string de conexão do MongoDB (ex.: `mongodb+srv://user:pass@cluster.mongodb.net/fluxstore`).
-- `JWT_SECRET` – segredo forte para assinar tokens JWT.
+- `JWT_SECRET` – segredo forte para tokens JWT.
 - `MPESA_CONSUMER_KEY` – chave pública da app Daraja.
 - `MPESA_CONSUMER_SECRET` – segredo da app Daraja.
 - `MPESA_SHORTCODE` – shortcode/código da organização.
@@ -26,54 +28,70 @@ Crie um Environment Group no Render com estas variáveis (ajuste valores reais):
 - `SMTP_USER` – utilizador/conta SMTP (remetente).
 - `SMTP_PASSWORD` – senha ou token da conta SMTP.
 
-Dicas adicionais:
-- Para ambiente de testes, crie variáveis separadas (ex.: prefixo `SANDBOX_`) e ajuste em `env.js` se quiser alternar perfis.
-- Armazene webhooks/URLs de callback da Mpesa diretamente em variáveis, se for usar callbacks dinâmicos.
+Dicas:
+- Separe credenciais de sandbox e produção em grupos diferentes (ex.: `fluxstore-sandbox` e `fluxstore-prod`).
+- Webhooks da Mpesa podem ser parametrizados via variável dedicada (ex.: `MPESA_CALLBACK_URL`) se você expuser callbacks.
 
-3) Provisionar o banco de dados
--------------------------------
-- Render oferece "Managed Mongo" via parceiros ou use MongoDB Atlas.
-- Crie uma database `fluxstore` e um utilizador com permissão de leitura/escrita.
-- Copie a connection string completa para `MONGO_URI` (inclua `retryWrites=true&w=majority`).
-
-4) Criar o serviço Web no Render
---------------------------------
-- Em "New" → "Web Service" → conecte o repositório.
-- Selecionar o diretório raiz: se seu repo contém apenas o backend, use a raiz; se tiver frontend também, indique `backend` como Root Directory.
-- Runtime: "Node".
-- Build Command: `npm install` (Render executa dentro do diretório definido).
-- Start Command: `npm start` (usa o script de produção configurado).
-- Region: escolha a mais próxima dos clientes moçambicanos para reduzir latência.
-- Associate o Environment Group criado anteriormente.
-
-5) Health check e timeouts
---------------------------
-- Endpoint de saúde: `/health` já existe; defina-o no "Health Check Path" do Render.
-- Se usar webhooks da Mpesa, garanta que o serviço esteja público (Porta 10000 mapeada pelo Render automaticamente).
-
-6) Estrutura de ficheiros recomendada no deploy
+3) Variáveis de ambiente necessárias (frontend)
 -----------------------------------------------
-- `backend/src/app.js` expõe as rotas principais (`/api/...`) e o health check.
-- `backend/src/config/env.js` lê todas as variáveis listadas acima.
-- `backend/src/services/mpesaClient.js` pode ser ajustado para usar callbacks/URLs de produção.
+- `VITE_API_URL` – URL pública do backend (ex.: `https://<backend>.onrender.com/api`).
+- `VITE_APP_NAME` (opcional) – nome a ser exibido nos títulos/hero.
+- `VITE_BRAND_ACCENT` (opcional) – cor primária (hex ou rgb) para harmonizar o tema.
 
-7) Boas práticas adicionais
----------------------------
-- Ative "Auto-Deploy" no Render para novos commits do branch principal.
-- Use "Pull Request Previews" apenas se precisar validar alterações sem afetar produção.
-- Configure alertas de logs/erro no Render para monitorar falhas de pagamento, auditoria e notificações de email.
-- Considere ativar "Cron Jobs" no Render para tarefas recorrentes (ex.: envio de newsletters, limpeza de carrinhos abandonados).
+4) Provisionar o banco de dados
+-------------------------------
+- Use Render Managed Mongo ou MongoDB Atlas.
+- Crie a database `fluxstore` e um utilizador com permissões de leitura/escrita.
+- Copie a connection string completa para `MONGO_URI`.
 
-8) Teste pós-deploy
---------------------
-- Chame `GET https://<seu-servico>.onrender.com/health` para validar que o container subiu.
-- Execute um fluxo completo de registro → login → checkout com Mpesa sandbox antes de liberar produção.
-- Verifique se notificações e emails de reset de senha chegam corretamente ao destinatário.
+5) Deploy do backend como Web Service
+-------------------------------------
+- Em "New" → "Web Service" → conecte o repositório.
+- Root Directory: `backend`.
+- Runtime: Node.
+- Build Command (monorepo servindo SPA pelo Express):
+  ```bash
+  npm install \
+    && npm --prefix ../frontend install \
+    && npm --prefix ../frontend run build
+  ```
+- Start Command: `npm start`.
+- Health Check Path: `/health` (já exposto em `src/app.js`).
+- Associe o Environment Group do backend.
 
-9) Segurança
-------------
-- Nunca exponha secrets no repositório; use apenas variáveis no Render.
-- Utilize usuários separados de MongoDB para produção e sandbox.
-- Rotacione `JWT_SECRET` e senhas de SMTP quando trocar de ambiente.
+6) Deploy do frontend como Static Site (alternativa)
+----------------------------------------------------
+Se preferir separar frontend e backend:
+- Em "New" → "Static Site".
+- Root Directory: `frontend`.
+- Build Command: `npm install && npm run build`.
+- Publish Directory: `dist`.
+- Defina `VITE_API_URL` nas "Environment Variables" apontando para o backend público.
+- Habilite a opção "Pull Request Preview" apenas se precisar de ambientes de homologação.
 
-Com estes passos, o backend da Fluxstore fica pronto para ser publicado no Render com configuração mínima e segura.
+7) Pipelining e domínios
+------------------------
+- Ative "Auto-Deploy" para o branch principal em ambos os serviços.
+- Configure domínios personalizados: ex. `app.sualoja.com` para o Static Site e `api.sualoja.com` para o backend.
+- Se usar o backend para servir o SPA, basta mapear o domínio no serviço Web e habilitar HTTPS.
+
+8) Tarefas recorrentes
+----------------------
+- Use Render Cron Jobs para newsletters, limpeza de carrinhos abandonados e reconciliação de pagamentos Mpesa.
+- Scripts sugeridos: `node src/services/marketingService.js --broadcast`, `node src/services/paymentService.js --reconcile` (ajuste handlers internos conforme sua automação).
+
+9) Teste pós-deploy
+-------------------
+- `GET https://<backend>.onrender.com/health` para validar o container.
+- Fluxo completo: registro → login → checkout Mpesa (sandbox) → confirmação de entrega → saque B2C.
+- Valide emails de reset de senha, notificações e o centro de alertas/admin.
+- Se usar Static Site, verifique se o `VITE_API_URL` está correto e se as rotas client-side funcionam (fallback SPA habilitado por padrão no Render).
+
+10) Segurança e observabilidade
+-------------------------------
+- Nunca exponha secrets no repositório; rotacione `JWT_SECRET` e credenciais Mpesa periodicamente.
+- Crie regras de CORS no backend se for servir o frontend em domínio separado.
+- Ative alertas de logs/erros no Render para pagamentos, disputas e denúncias.
+- Utilize audit logging embutido (`/api/audit`) para monitorar ações críticas.
+
+Seguindo estes passos, backend e frontend da Fluxstore ficam prontos para produção no Render com build automatizado do SPA e variáveis separadas por ambiente.
