@@ -1,0 +1,79 @@
+Guia de deploy no Render (Fluxstore Backend)
+===========================================
+
+Este documento descreve como publicar o backend Node.js/Express da Fluxstore no Render com MongoDB, Mpesa e SMTP. Siga os passos em ordem para evitar falhas.
+
+1) Preparação do repositório
+----------------------------
+- Certifique-se de que o código esteja no GitHub/GitLab (Render lê diretamente do repositório).
+- No repositório, mantenha `backend/package.json` com o script `start` já configurado (`NODE_ENV=production node src/app.js`).
+- Confirme que o branch principal contém o diretório `backend/` e um arquivo `.env` (não faça commit do `.env`).
+
+2) Variáveis de ambiente necessárias
+------------------------------------
+Crie um Environment Group no Render com estas variáveis (ajuste valores reais):
+- `PORT` – porta exposta pelo serviço (Render define automaticamente; deixe em branco ou repita o valor que Render fornece).
+- `MONGO_URI` – string de conexão do MongoDB (ex.: `mongodb+srv://user:pass@cluster.mongodb.net/fluxstore`).
+- `JWT_SECRET` – segredo forte para assinar tokens JWT.
+- `MPESA_CONSUMER_KEY` – chave pública da app Daraja.
+- `MPESA_CONSUMER_SECRET` – segredo da app Daraja.
+- `MPESA_SHORTCODE` – shortcode/código da organização.
+- `MPESA_INITIATOR` – nome do initiator (B2C).
+- `MPESA_INITIATOR_PASSWORD` – senha/credential para o initiator.
+- `MPESA_BASE_URL` – URL base da API (sandbox ou produção, por exemplo `https://sandbox.safaricom.co.ke`).
+- `SMTP_HOST` – host SMTP do provedor de email.
+- `SMTP_PORT` – porta SMTP (587 ou 465).
+- `SMTP_USER` – utilizador/conta SMTP (remetente).
+- `SMTP_PASSWORD` – senha ou token da conta SMTP.
+
+Dicas adicionais:
+- Para ambiente de testes, crie variáveis separadas (ex.: prefixo `SANDBOX_`) e ajuste em `env.js` se quiser alternar perfis.
+- Armazene webhooks/URLs de callback da Mpesa diretamente em variáveis, se for usar callbacks dinâmicos.
+
+3) Provisionar o banco de dados
+-------------------------------
+- Render oferece "Managed Mongo" via parceiros ou use MongoDB Atlas.
+- Crie uma database `fluxstore` e um utilizador com permissão de leitura/escrita.
+- Copie a connection string completa para `MONGO_URI` (inclua `retryWrites=true&w=majority`).
+
+4) Criar o serviço Web no Render
+--------------------------------
+- Em "New" → "Web Service" → conecte o repositório.
+- Selecionar o diretório raiz: se seu repo contém apenas o backend, use a raiz; se tiver frontend também, indique `backend` como Root Directory.
+- Runtime: "Node".
+- Build Command: `npm install` (Render executa dentro do diretório definido).
+- Start Command: `npm start` (usa o script de produção configurado).
+- Region: escolha a mais próxima dos clientes moçambicanos para reduzir latência.
+- Associate o Environment Group criado anteriormente.
+
+5) Health check e timeouts
+--------------------------
+- Endpoint de saúde: `/health` já existe; defina-o no "Health Check Path" do Render.
+- Se usar webhooks da Mpesa, garanta que o serviço esteja público (Porta 10000 mapeada pelo Render automaticamente).
+
+6) Estrutura de ficheiros recomendada no deploy
+-----------------------------------------------
+- `backend/src/app.js` expõe as rotas principais (`/api/...`) e o health check.
+- `backend/src/config/env.js` lê todas as variáveis listadas acima.
+- `backend/src/services/mpesaClient.js` pode ser ajustado para usar callbacks/URLs de produção.
+
+7) Boas práticas adicionais
+---------------------------
+- Ative "Auto-Deploy" no Render para novos commits do branch principal.
+- Use "Pull Request Previews" apenas se precisar validar alterações sem afetar produção.
+- Configure alertas de logs/erro no Render para monitorar falhas de pagamento, auditoria e notificações de email.
+- Considere ativar "Cron Jobs" no Render para tarefas recorrentes (ex.: envio de newsletters, limpeza de carrinhos abandonados).
+
+8) Teste pós-deploy
+--------------------
+- Chame `GET https://<seu-servico>.onrender.com/health` para validar que o container subiu.
+- Execute um fluxo completo de registro → login → checkout com Mpesa sandbox antes de liberar produção.
+- Verifique se notificações e emails de reset de senha chegam corretamente ao destinatário.
+
+9) Segurança
+------------
+- Nunca exponha secrets no repositório; use apenas variáveis no Render.
+- Utilize usuários separados de MongoDB para produção e sandbox.
+- Rotacione `JWT_SECRET` e senhas de SMTP quando trocar de ambiente.
+
+Com estes passos, o backend da Fluxstore fica pronto para ser publicado no Render com configuração mínima e segura.

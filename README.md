@@ -45,3 +45,7 @@ Este repositório contém uma espinha dorsal para a Fluxstore com foco em pagame
     - `GET /api/audit` (admin)
 
 Substitua os placeholders (`buyer-msisdn`, `seller-msisdn`, URLs e tokens sociais) conforme integrar com provedores reais. A camada de serviços foi escrita para ser facilmente trocada por SDKs oficiais ou chamadas REST completas.
+
+### Deploy
+- Para uma configuração rápida no Render, siga o guia detalhado em `redme.txt`, incluindo variáveis de ambiente, comandos de build/start e recomendações de boas práticas.
+- Um arquivo de exemplo `.env.example` em `backend/` lista todas as variáveis utilizadas pelo backend.
