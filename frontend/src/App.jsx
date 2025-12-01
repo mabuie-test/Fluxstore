@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import Catalog from './pages/Catalog.jsx';
 import Product from './pages/Product.jsx';
@@ -20,12 +20,14 @@ function ScrollToTop() {
 }
 
 function App() {
-  const { token, setNotifications } = useSession();
+  const { token, user, setNotifications } = useSession();
 
   useEffect(() => {
     if (!token) return;
     fetchNotifications(token).then((items) => setNotifications(items));
   }, [token, setNotifications]);
+
+  const adminRoles = ['admin', 'staff', 'superadmin'];
 
   return (
     <Shell>
@@ -36,7 +38,16 @@ function App() {
         <Route path="/product/:id" element={<Product />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/account" element={<Account />} />
-        <Route path="/admin" element={<AdminConsole />} />
+        <Route
+          path="/admin"
+          element={
+            adminRoles.includes(user?.role) ? (
+              <AdminConsole />
+            ) : (
+              <Navigate to="/account" replace state={{ from: '/admin' }} />
+            )
+          }
+        />
       </Routes>
       <NotificationTray />
     </Shell>

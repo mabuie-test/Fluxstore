@@ -12,8 +12,21 @@ import {
 } from '../api/client.js';
 
 function Account() {
-  const { token, setToken, user, setUser, setWishlist, wishlist, setNotifications, preferences, setPreferences } = useSession();
+  const {
+    token,
+    user,
+    setSession,
+    clearSession,
+    setWishlist,
+    wishlist,
+    setNotifications,
+    preferences,
+    setPreferences
+  } = useSession();
   const [resetStatus, setResetStatus] = useState('');
+  const [mode, setMode] = useState('login');
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -21,27 +34,36 @@ function Account() {
     fetchNotifications(token).then(setNotifications);
   }, [token, setWishlist, setNotifications]);
 
+  const runAuth = async (promise, successMessage = '') => {
+    setSubmitting(true);
+    setStatus({ type: '', message: '' });
+    try {
+      const res = await promise;
+      setSession(res.token, res.user);
+      setStatus({ type: 'success', message: successMessage || 'Sessão iniciada com sucesso.' });
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Não foi possível autenticar. Verifica os dados e tenta novamente.';
+      setStatus({ type: 'error', message });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const payload = { name: form.get('name'), email: form.get('email'), password: form.get('password') };
-    const res = await register(payload);
-    setToken(res.token);
-    setUser(res.user);
+    await runAuth(register(payload), 'Conta criada e login efetuado.');
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const res = await login({ email: form.get('email'), password: form.get('password') });
-    setToken(res.token);
-    setUser(res.user);
+    await runAuth(login({ email: form.get('email'), password: form.get('password') }), 'Bem-vindo de volta.');
   };
 
   const handleSocial = async (provider) => {
-    const res = await socialLogin({ provider, token: 'placeholder-social-token' });
-    setToken(res.token);
-    setUser(res.user);
+    await runAuth(socialLogin({ provider, token: 'placeholder-social-token' }), `Login via ${provider}`);
   };
 
   const handleResetRequest = async (e) => {
@@ -69,65 +91,140 @@ function Account() {
     setPreferences(updated.preferences || updated);
   };
 
+  const handleLogout = () => {
+    clearSession();
+    setStatus({ type: 'success', message: 'Terminaste a sessão com segurança.' });
+  };
+
   return (
     <div className="grid" style={{ gap: 18 }}>
-      <div className="card">
-        <h2 className="section-title">Conta</h2>
-        <p style={{ color: 'var(--muted)' }}>
-          Login por email (verificação + recuperação), integração social (Google/Facebook) e gestão de preferências regionais.
-        </p>
+      <div className="card auth-hero-card">
+        <div>
+          <h2 className="section-title">A tua conta Fluxstore</h2>
+          <p style={{ color: 'var(--muted)', maxWidth: 620 }}>
+            Checkout Mpesa instantâneo, recuperação de palavra-passe, verificação por email e um painel em camadas
+            (buyer/seller/admin) inspirado no fluxo do AliExpress. Mantemos sessão persistida para que o login do deploy
+            não falhe e só mostramos ferramentas conforme o teu papel.
+          </p>
+          {user && (
+            <div className="pill" style={{ marginTop: 10 }}>
+              Sessão ativa: {user.name} — {user.role || 'buyer'}
+            </div>
+          )}
+        </div>
+        <div className="badge-stack">
+          <div className="badge-ring" />
+          <div className="badge-ring badge-ring--warm" />
+          <div className="badge-gem" />
+        </div>
       </div>
 
-      {!token && (
-        <div className="section-row">
-          <form onSubmit={handleRegister} className="card" style={{ display: 'grid', gap: 10 }}>
-            <h3 className="section-title">Criar conta</h3>
-            <input name="name" className="input" placeholder="Nome" required />
-            <input name="email" className="input" placeholder="Email" required />
-            <input name="password" className="input" placeholder="Senha" type="password" required />
-            <button className="btn btn-primary" type="submit">
-              Registrar
+      <div className="auth-grid">
+        <div className="card auth-panel">
+          <div className="auth-toggle">
+            <button className={mode === 'login' ? 'tab active' : 'tab'} type="button" onClick={() => setMode('login')}>
+              Já tens conta? Entrar
             </button>
-          </form>
+            <button
+              className={mode === 'register' ? 'tab active' : 'tab'}
+              type="button"
+              onClick={() => setMode('register')}
+            >
+              Primeira vez? Criar conta
+            </button>
+          </div>
+          {mode === 'login' ? (
+            <form onSubmit={handleLogin} className="auth-form">
+              <div>
+                <label className="input-label">Email</label>
+                <input name="email" className="input" placeholder="email@dominio.com" required />
+              </div>
+              <div>
+                <label className="input-label">Senha</label>
+                <input name="password" className="input" placeholder="••••••••" type="password" required />
+              </div>
+              <button className="btn btn-primary" type="submit" disabled={submitting}>
+                Entrar agora
+              </button>
+              <p className="auth-hint">Ainda não tens conta? <span onClick={() => setMode('register')}>Regista-te.</span></p>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} className="auth-form">
+              <div>
+                <label className="input-label">Nome</label>
+                <input name="name" className="input" placeholder="Teu nome" required />
+              </div>
+              <div>
+                <label className="input-label">Email</label>
+                <input name="email" className="input" placeholder="email@dominio.com" required />
+              </div>
+              <div>
+                <label className="input-label">Senha</label>
+                <input name="password" className="input" placeholder="Cria uma senha forte" type="password" required />
+              </div>
+              <button className="btn btn-primary" type="submit" disabled={submitting}>
+                Criar conta e entrar
+              </button>
+              <p className="auth-hint">Já tens conta? <span onClick={() => setMode('login')}>Faz login.</span></p>
+            </form>
+          )}
+          <div className="auth-divider">ou continua com</div>
+          <div className="auth-social">
+            <button className="btn btn-ghost" type="button" onClick={() => handleSocial('google')} disabled={submitting}>
+              Google
+            </button>
+            <button className="btn btn-ghost" type="button" onClick={() => handleSocial('facebook')} disabled={submitting}>
+              Facebook
+            </button>
+          </div>
+          {status.message && (
+            <div className={`pill ${status.type === 'error' ? 'pill-error' : 'pill-success'}`}>{status.message}</div>
+          )}
+          {token && (
+            <div className="auth-session">
+              <div>
+                <strong>{user?.name}</strong>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Perfil: {user?.role || 'buyer'}</p>
+              </div>
+              <div className="auth-session-actions">
+                {['admin', 'staff', 'superadmin'].includes(user?.role) && (
+                  <span className="pill">Acesso ao console ao entrar</span>
+                )}
+                <button className="btn btn-ghost" type="button" onClick={handleLogout}>
+                  Terminar sessão
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
-          <form onSubmit={handleLogin} className="card" style={{ display: 'grid', gap: 10 }}>
-            <h3 className="section-title">Entrar</h3>
-            <input name="email" className="input" placeholder="Email" required />
-            <input name="password" className="input" placeholder="Senha" type="password" required />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-primary" type="submit">
-                Login
-              </button>
-              <button className="btn btn-ghost" type="button" onClick={() => handleSocial('google')}>
-                Google
-              </button>
-              <button className="btn btn-ghost" type="button" onClick={() => handleSocial('facebook')}>
-                Facebook
+        <div className="card auth-side">
+          <h3 className="section-title">Recuperação e segurança</h3>
+          <p style={{ color: 'var(--muted)' }}>
+            Enviamos links de redefinição e validação por email. Mantemos MFA social como opção alternativa.
+          </p>
+          <form onSubmit={handleResetRequest} className="stacked">
+            <label className="input-label">Recuperar palavra-passe</label>
+            <div className="auth-inline">
+              <input name="email" className="input" placeholder="Teu email" required />
+              <button className="btn btn-ghost" type="submit" disabled={submitting}>
+                Enviar link
               </button>
             </div>
           </form>
+          <form onSubmit={handleResetConfirm} className="stacked">
+            <label className="input-label">Confirmar reset</label>
+            <div className="auth-inline">
+              <input name="token" className="input" placeholder="Token recebido" required />
+              <input name="password" className="input" placeholder="Nova senha" type="password" required />
+            </div>
+            <button className="btn btn-primary" type="submit" disabled={submitting}>
+              Atualizar senha
+            </button>
+          </form>
+          {resetStatus && <div className="pill">{resetStatus}</div>}
         </div>
-      )}
-
-      <div className="section-row">
-        <form onSubmit={handleResetRequest} className="card" style={{ display: 'grid', gap: 10 }}>
-          <h3 className="section-title">Recuperação de palavra-passe</h3>
-          <input name="email" className="input" placeholder="Teu email" required />
-          <button className="btn btn-ghost" type="submit">
-            Enviar link
-          </button>
-        </form>
-
-        <form onSubmit={handleResetConfirm} className="card" style={{ display: 'grid', gap: 10 }}>
-          <h3 className="section-title">Confirmar reset</h3>
-          <input name="token" className="input" placeholder="Token recebido" required />
-          <input name="password" className="input" placeholder="Nova senha" type="password" required />
-          <button className="btn btn-primary" type="submit">
-            Atualizar senha
-          </button>
-        </form>
       </div>
-      {resetStatus && <div className="pill">{resetStatus}</div>}
 
       <form onSubmit={handlePreferences} className="card" style={{ display: 'grid', gap: 10 }}>
         <h3 className="section-title">Preferências e newsletter</h3>

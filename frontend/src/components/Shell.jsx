@@ -1,17 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
 import useSession from '../state/useSession.js';
 
-const navItems = [
+const baseNavItems = [
   { to: '/', label: 'Home' },
   { to: '/catalog', label: 'Catálogo' },
   { to: '/cart', label: 'Carrinho' },
-  { to: '/account', label: 'Conta' },
-  { to: '/admin', label: 'Admin' }
+  { to: '/account', label: 'Conta' }
 ];
 
 function Shell({ children }) {
   const { pathname } = useLocation();
   const { user, cart } = useSession();
+  const navItems = user?.role && ['admin', 'staff', 'superadmin'].includes(user.role)
+    ? [...baseNavItems, { to: '/admin', label: 'Console' }]
+    : baseNavItems;
   const badge = cart?.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0;
 
   return (
