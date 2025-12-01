@@ -19,9 +19,15 @@ import reportRoutes from './routes/reportRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
+import sellerRoutes from './routes/sellerRoutes.js';
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true
+  })
+);
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
@@ -38,6 +44,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/seller', sellerRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 

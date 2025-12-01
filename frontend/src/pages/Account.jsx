@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useSession from '../state/useSession.js';
 import {
   fetchNotifications,
@@ -27,6 +28,8 @@ function Account() {
   const [mode, setMode] = useState('login');
   const [status, setStatus] = useState({ type: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!token) return;
@@ -41,6 +44,9 @@ function Account() {
       const res = await promise;
       setSession(res.token, res.user);
       setStatus({ type: 'success', message: successMessage || 'Sessão iniciada com sucesso.' });
+      const destination =
+        location.state?.from || (['admin', 'staff', 'superadmin'].includes(res.user?.role) ? '/admin' : '/');
+      navigate(destination, { replace: true });
     } catch (error) {
       const message = error?.response?.data?.message || 'Não foi possível autenticar. Verifica os dados e tenta novamente.';
       setStatus({ type: 'error', message });
@@ -94,6 +100,7 @@ function Account() {
   const handleLogout = () => {
     clearSession();
     setStatus({ type: 'success', message: 'Terminaste a sessão com segurança.' });
+    navigate('/');
   };
 
   return (

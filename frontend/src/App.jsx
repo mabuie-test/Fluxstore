@@ -6,6 +6,7 @@ import Product from './pages/Product.jsx';
 import Cart from './pages/Cart.jsx';
 import Account from './pages/Account.jsx';
 import AdminConsole from './pages/AdminConsole.jsx';
+import SellerOnboarding from './pages/SellerOnboarding.jsx';
 import Shell from './components/Shell.jsx';
 import NotificationTray from './components/NotificationTray.jsx';
 import useSession from './state/useSession.js';
@@ -38,6 +39,7 @@ function App() {
         <Route path="/product/:id" element={<Product />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/seller/apply" element={<SellerOnboarding />} />
         <Route
           path="/admin"
           element={

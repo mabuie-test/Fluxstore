@@ -4,6 +4,7 @@ import useSession from '../state/useSession.js';
 const baseNavItems = [
   { to: '/', label: 'Home' },
   { to: '/catalog', label: 'Catálogo' },
+  { to: '/seller/apply', label: 'Vender' },
   { to: '/cart', label: 'Carrinho' },
   { to: '/account', label: 'Conta' }
 ];

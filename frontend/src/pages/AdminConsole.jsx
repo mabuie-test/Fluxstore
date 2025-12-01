@@ -7,6 +7,8 @@ import {
   adminReports,
   adminResolveReport,
   adminSettings,
+  adminSellerApplications,
+  adminReviewSellerApplication,
   updateAdminSettings
 } from '../api/client.js';
 
@@ -16,6 +18,7 @@ function AdminConsole() {
   const [settings, setSettings] = useState(null);
   const [reports, setReports] = useState([]);
   const [menu, setMenu] = useState([]);
+  const [sellerApps, setSellerApps] = useState([]);
   const [status, setStatus] = useState('');
 
   useEffect(() => {
@@ -24,6 +27,7 @@ function AdminConsole() {
     adminSettings(token).then(setSettings).catch(() => {});
     adminReports(token).then(setReports).catch(() => {});
     adminMenu(token).then(setMenu).catch(() => {});
+    adminSellerApplications(token).then(setSellerApps).catch(() => {});
   }, [token]);
 
   const handleSettings = async (e) => {
@@ -53,6 +57,15 @@ function AdminConsole() {
   const handleResolve = async (report) => {
     const updated = await adminResolveReport(token, report._id || report.id, { status: 'resolved' });
     setReports((prev) => prev.map((r) => (r._id === report._id ? updated : r)));
+  };
+
+  const handleSellerReview = async (app, approval = true) => {
+    const updated = await adminReviewSellerApplication(token, app._id || app.id, {
+      status: approval ? 'approved' : 'rejected',
+      feeStatus: approval ? 'paid' : app.feeStatus,
+      note: approval ? 'Taxa confirmada (50 MZN) e vendedor liberado' : 'Dados insuficientes'
+    });
+    setSellerApps((prev) => prev.map((s) => (s._id === updated._id ? updated : s)));
   };
 
   if (!token) return <div className="card">Precisas de login admin.</div>;
@@ -105,6 +118,36 @@ function AdminConsole() {
             Publicar
           </button>
         </form>
+      </section>
+
+      <section className="card" style={{ display: 'grid', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 className="section-title">Candidaturas de vendedores</h3>
+          <div className="pill">Taxa 50 MZN</div>
+        </div>
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          {sellerApps.map((app) => (
+            <div key={app._id || app.id} className="glass" style={{ padding: 12 }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span className="pill">{app.status}</span>
+                <strong>{app.storeName}</strong>
+              </div>
+              <p style={{ color: 'var(--muted)' }}>
+                Mpesa: {app.mpesaNumber} · Taxa {app.feeStatus} · Categoria {app.category || '—'}
+              </p>
+              <small style={{ color: 'var(--muted)' }}>Solicitante: {app.user?.email}</small>
+              <div className="section-row" style={{ marginTop: 8 }}>
+                <button className="btn btn-primary" onClick={() => handleSellerReview(app, true)}>
+                  Aprovar e liberar
+                </button>
+                <button className="btn btn-ghost" onClick={() => handleSellerReview(app, false)}>
+                  Rejeitar
+                </button>
+              </div>
+            </div>
+          ))}
+          {sellerApps.length === 0 && <p style={{ color: 'var(--muted)' }}>Nenhuma candidatura nova.</p>}
+        </div>
       </section>
 
       <section className="card" style={{ display: 'grid', gap: 10 }}>

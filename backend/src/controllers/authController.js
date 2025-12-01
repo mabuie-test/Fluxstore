@@ -28,11 +28,18 @@ export const login = async (req, res) => {
 };
 
 export const socialLogin = async (req, res) => {
-  const { provider, socialId, email, name } = req.body;
+  const { provider, socialId, token: socialToken, email, name } = req.body;
+  const resolvedId = socialId || socialToken || crypto.randomBytes(8).toString('hex');
   const idField = provider === 'google' ? 'googleId' : 'facebookId';
-  let user = await User.findOne({ [idField]: socialId });
+  let user = await User.findOne({ [idField]: resolvedId });
   if (!user) {
-    user = await User.create({ name, email, password: crypto.randomBytes(8).toString('hex'), [idField]: socialId, verified: true });
+    user = await User.create({
+      name: name || provider,
+      email: email || `${resolvedId}@${provider}.placeholder`,
+      password: crypto.randomBytes(8).toString('hex'),
+      [idField]: resolvedId,
+      verified: true
+    });
   }
   const token = signToken(user);
   res.json({ token, user });

@@ -110,6 +110,26 @@ export const subscribeNewsletter = async (payload) => {
   return res.data;
 };
 
+export const applySeller = async (token, payload) => {
+  const res = await client.post('/seller/apply', payload, authHeaders(token));
+  return res.data;
+};
+
+export const fetchSellerApplication = async (token) => {
+  const res = await client.get('/seller/my', authHeaders(token));
+  return res.data;
+};
+
+export const adminSellerApplications = async (token) => {
+  const res = await client.get('/seller/applications', authHeaders(token));
+  return res.data;
+};
+
+export const adminReviewSellerApplication = async (token, id, payload) => {
+  const res = await client.patch(`/seller/applications/${id}`, payload, authHeaders(token));
+  return res.data;
+};
+
 export const adminSettings = async (token) => {
   const res = await client.get('/admin/settings', authHeaders(token));
   return res.data;
