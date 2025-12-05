@@ -26,7 +26,8 @@ function Home() {
       'Checkout Mpesa, vitrine editorial, newsletters automatizados e controle granular para compradores, vendedores e admins.',
     ctas: [
       { label: 'Explorar catálogos', href: '/catalog', primary: true },
-      { label: 'Ver lookbook', href: '#lookbook' }
+      { label: 'Ver lookbook', href: '#lookbook' },
+      { label: 'Queres vender?', href: '/seller/apply', primary: false }
     ],
     stats: [
       { label: 'Tempo médio de entrega', value: marketing?.metrics?.eta || '~48h' },

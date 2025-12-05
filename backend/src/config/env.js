@@ -6,6 +6,7 @@ export const env = {
   port: process.env.PORT || 4000,
   mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/fluxstore',
   jwtSecret: process.env.JWT_SECRET || 'super-secret-key',
+  allowAdminSelfSignup: process.env.ALLOW_ADMIN_SELF_SIGNUP === 'true',
   mpesa: {
     consumerKey: process.env.MPESA_CONSUMER_KEY || 'your-consumer-key',
     consumerSecret: process.env.MPESA_CONSUMER_SECRET || 'your-consumer-secret',

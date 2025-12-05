@@ -11,9 +11,15 @@ export const register = async (req, res) => {
   const { name, email, password, role } = req.body;
   const existing = await User.findOne({ email });
   if (existing) return res.status(400).json({ message: 'Email already registered' });
-  const user = await User.create({ name, email, password, role });
+  const adminRoles = ['admin', 'staff', 'superadmin'];
+  const requestedRole = role && adminRoles.includes(role) && env.allowAdminSelfSignup ? role : null;
+  const user = await User.create({ name, email, password, role: requestedRole || 'buyer' });
   const token = signToken(user);
-  await mailer.sendVerification(email, token);
+  try {
+    await mailer.sendVerification(email, token);
+  } catch (err) {
+    console.warn('Email verification send failed; continuing registration', err.message);
+  }
   res.status(201).json({ token, user });
 };
 
@@ -52,7 +58,11 @@ export const requestPasswordReset = async (req, res) => {
   user.resetToken = crypto.randomBytes(20).toString('hex');
   user.resetExpires = Date.now() + 1000 * 60 * 30;
   await user.save();
-  await mailer.sendPasswordReset(email, user.resetToken);
+  try {
+    await mailer.sendPasswordReset(email, user.resetToken);
+  } catch (err) {
+    console.warn('Password reset email failed; token still created', err.message);
+  }
   res.json({ message: 'Reset link sent' });
 };
 

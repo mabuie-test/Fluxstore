@@ -27,6 +27,7 @@ Crie um Environment Group com os valores reais:
 - `SMTP_PORT` – porta SMTP (587 ou 465).
 - `SMTP_USER` – utilizador/conta SMTP (remetente).
 - `SMTP_PASSWORD` – senha ou token da conta SMTP.
+- `ALLOW_ADMIN_SELF_SIGNUP` – deixe `true` apenas em ambientes de teste para permitir o registo temporário de administradores direto no formulário.
 
 Dicas:
 - Separe credenciais de sandbox e produção em grupos diferentes (ex.: `fluxstore-sandbox` e `fluxstore-prod`).

@@ -28,6 +28,7 @@ function Account() {
   const [mode, setMode] = useState('login');
   const [status, setStatus] = useState({ type: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [adminSignup, setAdminSignup] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,7 +59,12 @@ function Account() {
   const handleRegister = async (e) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const payload = { name: form.get('name'), email: form.get('email'), password: form.get('password') };
+    const payload = {
+      name: form.get('name'),
+      email: form.get('email'),
+      password: form.get('password'),
+      role: adminSignup ? 'admin' : undefined
+    };
     await runAuth(register(payload), 'Conta criada e login efetuado.');
   };
 
@@ -169,6 +175,10 @@ function Account() {
                 <label className="input-label">Senha</label>
                 <input name="password" className="input" placeholder="Cria uma senha forte" type="password" required />
               </div>
+              <label className="pill" style={{ gap: 8 }}>
+                <input type="checkbox" checked={adminSignup} onChange={(e) => setAdminSignup(e.target.checked)} />
+                Registo admin temporário (para testes e bootstrap do painel)
+              </label>
               <button className="btn btn-primary" type="submit" disabled={submitting}>
                 Criar conta e entrar
               </button>
@@ -203,6 +213,17 @@ function Account() {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="card auth-side">
+          <h3 className="section-title">Vender connosco</h3>
+          <p style={{ color: 'var(--muted)' }}>
+            Queres vender? Abre a tua loja digital no estilo AliExpress. Primeiro autentica-te e depois segue para o
+            pedido de vendedor com a taxa anual de 50 MZN.
+          </p>
+          <button className="btn btn-primary" type="button" onClick={() => navigate('/seller/apply')}>
+            Ir para o pedido de vendedor
+          </button>
         </div>
 
         <div className="card auth-side">

@@ -19,6 +19,7 @@ Este repositório contém uma espinha dorsal para a Fluxstore com foco em pagame
 
 ### Como executar
 1. Configure variáveis de ambiente em `.env` (MongoDB, credenciais Mpesa e SMTP). Valores de sandbox estão definidos como padrão em `backend/src/config/env.js`.
+   - Use `ALLOW_ADMIN_SELF_SIGNUP=true` somente se precisar habilitar, temporariamente, o auto-registo de administradores para testes ou bootstrap do painel.
 2. Instale dependências na pasta `backend/`:
    ```bash
    npm install
